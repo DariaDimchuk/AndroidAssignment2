@@ -1,18 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <EditText
+        android:id="@+id/edtUserId"
+        android:layout_margin="5dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:minHeight="80dp"
+        android:layout_marginTop="30dp"
+        android:ems="10"
+        android:textSize="26sp"
+        android:hint="@string/hintUserId"
+        android:inputType="textPersonName" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <Button
+        android:id="@+id/btnDate"
+        android:layout_below="@+id/edtUserId"
+        android:layout_margin="2dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="80dp"
+        android:textSize="26sp"/>
+
+    <Button
+        android:id="@+id/btnTime"
+        android:layout_below="@+id/btnDate"
+        android:layout_margin="2dp"
+        android:minHeight="80dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="26sp"/>
+
+    <EditText
+        android:id="@+id/etSystolic"
+        android:layout_below="@+id/btnTime"
+        android:layout_margin="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="80dp"
+        android:ems="10"
+        android:textSize="26sp"
+        android:hint="@string/hintSystolic"
+        android:inputType="textPersonName" />
+
+    <EditText
+        android:id="@+id/etDiastolic"
+        android:layout_below="@+id/etSystolic"
+        android:layout_margin="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="80dp"
+        android:ems="10"
+        android:textSize="26sp"
+        android:hint="@string/hintDiastolic"
+        android:inputType="textPersonName" />
+
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="80dp"
+        android:layout_above="@+id/btnCancel"
+        android:text="@string/btnSave"
+        android:textSize="26sp"/>
+
+    <Button
+        android:id="@+id/btnCancel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="80dp"
+        android:text="@string/btnCancel"
+        android:layout_alignParentBottom="true"
+        android:textSize="26sp"/>
+
+
+</RelativeLayout>

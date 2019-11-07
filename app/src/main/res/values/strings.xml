@@ -1,3 +1,9 @@
 <resources>
-    <string name="app_name">BloodPressureApp</string>
+    <string name="app_name">Dimchuk and Yau</string>
+    <string name="hintUserId">Enter User ID</string>
+    <string name="hintSystolic">Enter Systolic Value</string>
+    <string name="hintDiastolic">Enter Diastolic Value</string>
+    <string name="btnSave">Save</string>
+    <string name="btnCancel">Cancel</string>
+
 </resources>
