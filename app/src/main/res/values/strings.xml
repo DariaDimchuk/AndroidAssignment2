@@ -4,6 +4,7 @@
     <string name="hintSystolic">Enter Systolic Value</string>
     <string name="hintDiastolic">Enter Diastolic Value</string>
     <string name="btnSave">Save</string>
+    <string name="btnDelete">Delete</string>
     <string name="btnCancel">Cancel</string>
 
     <string name="emptyList">No entries found. Start by adding new entries.</string>
