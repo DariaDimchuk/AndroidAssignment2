@@ -1,29 +1,37 @@
 package com.example.bloodpressureapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnCanceledListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 public class EditTaskActivity extends AppCompatActivity {
+
+    boolean editMode;
+    String passedId;
+    TaskItem passedItem;
 
     EditText etUserId;
     EditText etSystoic;
@@ -36,7 +44,6 @@ public class EditTaskActivity extends AppCompatActivity {
 
     DatabaseReference taskDb;
 
-    ListView lvTasks;
     List<TaskItem> taskItemList;
 
     @Override
@@ -46,14 +53,8 @@ public class EditTaskActivity extends AppCompatActivity {
 
         taskDb = FirebaseDatabase.getInstance().getReference("tasks");
 
-
-        date = new Date();
         txtDate = findViewById(R.id.txtDate);
         txtTime = findViewById(R.id.txtTime);
-
-        txtDate.setText(TaskItem.getDateString(date));
-        txtTime.setText(TaskItem.getTimeString(date));
-
 
         etUserId = findViewById(R.id.edtUserId);
         etSystoic = findViewById(R.id.etSystolic);
@@ -62,12 +63,49 @@ public class EditTaskActivity extends AppCompatActivity {
         btnCancel = findViewById(R.id.btnCancel);
         btnSave = findViewById(R.id.btnSave);
 
+        Intent intent = getIntent();
+        passedId = intent.getStringExtra("taskId");
+
+        if(passedId != null){
+            editMode = true;
+
+            taskDb.orderByChild("taskId").equalTo(passedId)
+                    .addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            HashMap obj = (HashMap)dataSnapshot.getValue();
+                            HashMap elements = (HashMap)obj.get(passedId);
+
+                            passedItem = new TaskItem(passedId);
+                            passedItem.setUserId(elements.get("userId").toString());
+                            passedItem.setSystolic(Integer.parseInt(elements.get("systolic").toString()));
+                            passedItem.setDiastolic(Integer.parseInt(elements.get("diastolic").toString()));
+                            passedItem.setCondition(elements.get("condition").toString());
+                            passedItem.setDate(elements.get("date").toString());
+                            passedItem.setTime(elements.get("time").toString());
+
+                            populateFieldsWithEditValues(passedItem);
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+        } else {
+            date = new Date();
+
+            txtDate.setText(TaskItem.getDateString(date));
+            txtTime.setText(TaskItem.getTimeString(date));
+        }
+
+
         taskItemList = new ArrayList<TaskItem>();
 
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                addTask();
+                updateItem();
             }
         });
 
@@ -82,32 +120,57 @@ public class EditTaskActivity extends AppCompatActivity {
     }
 
 
-    /**
-     * Add task to database.
-     */
-    private void addTask() {
+    public void populateFieldsWithEditValues(TaskItem t){
+        etUserId.setText(t.getUserId());
+        etSystoic.setText(String.valueOf(t.getSystolic()));
+        etDiastoic.setText(String.valueOf(t.getDiastolic()));
+        txtDate.setText(t.getDate());
+        txtTime.setText(t.getTime());
+    }
+
+
+    private void updateItem(){
         String user = etUserId.getText().toString().trim();
         String sys = etSystoic.getText().toString().trim();
         String dias = etDiastoic.getText().toString().trim();
-
-        //Date value should be auto added so no need to check it
 
         if(!validateValues(user, sys, dias)){
             return; //stop adding if invalid
         }
 
+        if(editMode){
+            editTask(user, sys, dias);
+        } else addTask(user, sys, dias);
+    }
+
+
+
+    /**
+     * Add task to database.
+     */
+    private void addTask(String user, String sys, String dias) {
         String id = taskDb.push().getKey();
 
         //TODO
         String condition = ""; //TODO generate condition
 
-        TaskItem taskItem = new TaskItem(id, user, new Date(), Integer.parseInt(sys), Integer.parseInt(dias), condition);
+        TaskItem taskItem = new TaskItem(id, user, Integer.parseInt(sys), Integer.parseInt(dias), condition);
 
         Task setValueTask = taskDb.child(id).setValue(taskItem);
-
         setTaskListeners(setValueTask);
-
     }
+
+
+
+    private void editTask(String user, String sys, String dias) {
+        passedItem.setUserId(user);
+        passedItem.setSystolic(Integer.parseInt(sys));
+        passedItem.setDiastolic(Integer.parseInt(dias));
+
+        Task setValueTask = taskDb.child(passedId).setValue(passedItem);
+        setTaskListeners(setValueTask);
+    }
+
 
 
     private void setTaskListeners(Task task){
@@ -171,113 +234,6 @@ public class EditTaskActivity extends AppCompatActivity {
     }
 
 
-    private void updateTask(String taskId, String userId, Date date, String sys, String dias) {
-        System.out.println("ID: " + taskId);
-        DatabaseReference dbRef = taskDb.child(taskId);
-
-        //TODO CONDITIIOn
-        String condition = "";
-
-        TaskItem taskItem = new TaskItem(taskId, userId, date, Integer.parseInt(sys), Integer.parseInt(dias), condition);
-
-        Task setValueTask = dbRef.setValue(taskItem);
-
-        setValueTask.addOnSuccessListener(new OnSuccessListener() {
-            @Override
-            public void onSuccess(Object o) {
-                Toast.makeText(EditTaskActivity.this,
-                        "Task Updated.",Toast.LENGTH_LONG).show();
-            }
-        });
-
-        setValueTask.addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(EditTaskActivity.this,
-                        "Something went wrong.\n" + e.toString(),
-                        Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-//    private void showUpdateDialog(final String id, String task, String who, String dueDate, boolean done) {
-//        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
-//
-//        LayoutInflater inflater = getLayoutInflater();
-//
-//        final View dialogView = inflater.inflate(R.layout.update_dialog, null);
-//        dialogBuilder.setView(dialogView);
-//
-//        final EditText edtTask = dialogView.findViewById(R.id.edtTaskUpdate);
-//        edtTask.setText(task);
-//
-//        final EditText edtWho = dialogView.findViewById(R.id.edtWhoUpdate);
-//        edtWho.setText(who);
-//
-//        final TextView tvDate = dialogView.findViewById(R.id.txtDateUpdate);
-//        tvDate.setText(dueDate);
-//        dialogDate = tvDate;
-//
-//        final Spinner sprDone = dialogView.findViewById(R.id.sprDone);
-//        sprDone.setSelection(((ArrayAdapter<Boolean>)sprDone.getAdapter()).getPosition(done));
-//
-//        final Button btnUpdate = dialogView.findViewById(R.id.btnUpdate);
-//
-//        dialogBuilder.setTitle("Update '" + task + "' (" + who + ")");
-//
-//        final AlertDialog alertDialog = dialogBuilder.create();
-//        alertDialog.show();
-//
-//        tvDate.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                //TO DO
-//                showDatePickerDialog();
-//            }
-//        });
-//
-//
-//
-//        btnUpdate.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                String task = edtTask.getText().toString().trim();
-//                String who = edtWho.getText().toString().trim();
-//                String done = sprDone.getSelectedItem().toString().trim();
-//                String date = tvDate.getText().toString().trim();
-//                boolean isDone = false;
-//                System.out.println("DONE: " + done);
-//                if (done.equals("Complete")) {
-//                    isDone = true;
-//                }
-//
-//                if (TextUtils.isEmpty(task)) {
-//                    edtTask.setError("Task is required");
-//                    return;
-//                } else if (TextUtils.isEmpty(who)) {
-//                    edtWho.setError("Task Person is required");
-//                    return;
-//                }
-//
-//                updateTask(id, task, who, date, isDone);
-//
-//                alertDialog.dismiss();
-//            }
-//        });
-//
-//
-//        //TODO DELETE FUNC
-////        final Button btnDelete = dialogView.findViewById(R.id.btnDelete);
-////        btnDelete.setOnClickListener(new View.OnClickListener() {
-////            @Override
-////            public void onClick(View v) {
-////                deleteTask(id);
-////
-////                alertDialog.dismiss();
-////            }
-////        });
-//
-//    }
 
     private void deleteTask(String id) {
         DatabaseReference dbRef = taskDb.child(id);

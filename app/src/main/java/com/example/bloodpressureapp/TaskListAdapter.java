@@ -4,8 +4,6 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.widget.ArrayAdapter;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.List;
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -60,8 +58,7 @@ public class TaskListAdapter extends ArrayAdapter<TaskItem> {
 
         tvUserId.setText(taskItem.getUserId());
 
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm");
-        String dateString = dateFormat.format(taskItem.getDate());
+        String dateString = taskItem.getDate() + " " + taskItem.getTime();
 
         tvDateTime.setText(dateString);
         tvSysDiasScore.setText(sys + "/" + dias);

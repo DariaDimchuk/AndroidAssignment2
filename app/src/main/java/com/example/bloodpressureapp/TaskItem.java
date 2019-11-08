@@ -1,11 +1,16 @@
 package com.example.bloodpressureapp;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class TaskItem {
+    public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    public static SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm");
+
     private String taskId;
     private String userId;
-    private Date date;
+    private String date;
+    private String time;
     private int systolic;
     private int diastolic;
     private String condition;
@@ -14,14 +19,27 @@ public class TaskItem {
 
     public TaskItem(String taskId) {
         this.taskId = taskId;
+        this.setDate();
+        this.setTime();
+    }
+
+
+    public TaskItem(String taskId, String userId, int systolic, int diastolic, String condition) {
+        this.taskId = taskId;
+        this.userId = userId;
+        this.setDate();
+        this.setTime();
+        this.systolic = systolic;
+        this.diastolic = diastolic;
+        this.condition = condition;
     }
 
 
     public TaskItem(String taskId, String userId, Date date, int systolic, int diastolic, String condition) {
-        //TODO maybe generate task id only on adding to list?
         this.taskId = taskId;
         this.userId = userId;
-        this.date = date;
+        this.date = dateFormat.format(date);
+        this.time = timeFormat.format(date);
         this.systolic = systolic;
         this.diastolic = diastolic;
         this.condition = condition;
@@ -32,10 +50,6 @@ public class TaskItem {
         return taskId;
     }
 
-    public void setTaskId(String taskId) {
-        this.taskId = taskId;
-    }
-
     public String getUserId() {
         return userId;
     }
@@ -44,13 +58,28 @@ public class TaskItem {
         this.userId = userId;
     }
 
-    public Date getDate() {
+    public String getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public void setDate() {
+        Date date = new Date();
+        this.date = dateFormat.format(date);
     }
+
+    public void setDate(String date) { this.date = date; }
+
+
+    public String getTime(){
+        return this.time;
+    }
+
+    public void setTime(){
+        Date date = new Date();
+        this.time = timeFormat.format(date);
+    }
+
+    public void setTime(String time) { this.time = time; }
 
     public int getSystolic() {
         return systolic;
@@ -79,13 +108,11 @@ public class TaskItem {
 
 
     public static String getDateString(Date date){
-        String dateTxt = (date.getMonth() + 1)+ "/" + date.getDate() + "/" + (date.getYear() + 1900);
-        return dateTxt;
+        return dateFormat.format(date);
     }
 
     public static String getTimeString(Date date){
-        String timeTxt = date.getHours() + ":" + date.getMinutes();
-        return timeTxt;
+        return timeFormat.format(date);
     }
 
 }
