@@ -7,19 +7,19 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/txtEmpty"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/margin_100"
-        android:text="@string/emptyList"></TextView>
-
-
     <ListView
         android:id="@+id/lvTasks"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginBottom="@dimen/margin_100" />
+
+    <TextView
+        android:id="@+id/empty_list_item"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:text="@string/emptyList" >
+    </TextView>
 
     <Button
         android:id="@+id/btnAddItem"

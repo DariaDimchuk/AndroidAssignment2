@@ -1,21 +1,15 @@
 package com.example.bloodpressureapp;
 
-import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCanceledListener;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -23,12 +17,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class EditTaskActivity extends AppCompatActivity {
@@ -100,15 +92,8 @@ public class EditTaskActivity extends AppCompatActivity {
 
         //Date value should be auto added so no need to check it
 
-        if (TextUtils.isEmpty(user)) {
-            Toast.makeText(this, "You must enter a user name.", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        if (TextUtils.isEmpty(sys) || TextUtils.isEmpty(dias)) {
-            Toast.makeText(this, "You must enter both systolic and diastolic blood pressure values",
-                    Toast.LENGTH_LONG).show();
-            return;
+        if(!validateValues(user, sys, dias)){
+            return; //stop adding if invalid
         }
 
         String id = taskDb.push().getKey();
@@ -151,6 +136,38 @@ public class EditTaskActivity extends AppCompatActivity {
                         "Task cancelled.",Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+
+    private boolean validateValues(String userId, String sys, String dias){
+        if (TextUtils.isEmpty(userId)) {
+            Toast.makeText(this, "You must enter a user name.", Toast.LENGTH_LONG).show();
+            return false;
+        }
+
+        if (TextUtils.isEmpty(sys) || TextUtils.isEmpty(dias)) {
+            Toast.makeText(this, "You must enter both systolic and diastolic blood pressure values",
+                    Toast.LENGTH_LONG).show();
+            return false;
+        }
+
+
+        int sysInt = Integer.parseInt(sys);
+        int diasInt = Integer.parseInt(dias);
+
+        if(sysInt < 90 || sysInt > 250){
+            Toast.makeText(this, "Systolic blood pressure values range on average between 90 and 250.",
+                    Toast.LENGTH_LONG).show();
+            return false;
+        }
+
+        if(diasInt < 60 || diasInt > 140){
+            Toast.makeText(this, "Diastolic blood pressure values range on average between 60 and 140.",
+                    Toast.LENGTH_LONG).show();
+            return false;
+        }
+
+        return true;
     }
 
 

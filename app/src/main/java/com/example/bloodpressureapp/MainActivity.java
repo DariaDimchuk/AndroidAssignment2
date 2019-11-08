@@ -50,8 +50,9 @@ public class MainActivity extends AppCompatActivity {
         taskDb = FirebaseDatabase.getInstance().getReference("tasks");
 
         lvTasks = findViewById(R.id.lvTasks);
-        taskItemList = new ArrayList<TaskItem>();
+        lvTasks.setEmptyView(findViewById(R.id.empty_list_item));
 
+        taskItemList = new ArrayList<TaskItem>();
 
         btnAddNew = findViewById(R.id.btnAddItem);
         btnAddNew.setOnClickListener(new View.OnClickListener() {
@@ -88,8 +89,6 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, EditTaskActivity.class);
 
         startActivity(intent);
-
-        showEmptyListMessage();
 
 //        String task = edtTask.getText().toString().trim();
 //        String who = edtWho.getText().toString().trim();
@@ -132,45 +131,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void showEmptyListMessage(){
-        //TextView emptyTxt = findViewById(R.id.txtEmpty);
-
-        taskDb.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                TextView emptyTxt = findViewById(R.id.txtEmpty);
-
-                if(dataSnapshot.getChildrenCount() > 0){
-                    emptyTxt.setVisibility(View.GONE); //hide
-                } else {
-                    emptyTxt.setVisibility(View.VISIBLE); //hide
-                }
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Toast.makeText(MainActivity.this,
-                        "onCancelled called.",Toast.LENGTH_LONG).show();
-            }
-
-        });
-
-
-//        if(taskItemList.size() > 0){
-//            emptyTxt.setVisibility(View.GONE); //hide
-//        } else {
-//            emptyTxt.setVisibility(View.VISIBLE);
-//        }
-    }
-
-
     @Override
     protected void onStart() {
         super.onStart();
         taskDb.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                showEmptyListMessage();
-
                 if (taskItemList != null) {
                     taskItemList.clear();
                 }
@@ -190,7 +156,10 @@ public class MainActivity extends AppCompatActivity {
 
 
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) { }
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(MainActivity.this,
+                        "Task cancelled.",Toast.LENGTH_LONG).show();
+            }
 
         });
 
