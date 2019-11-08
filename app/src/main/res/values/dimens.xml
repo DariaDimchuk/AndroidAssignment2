@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="margin_2">2dp</dimen>
+    <dimen name="margin_100">100dp</dimen>
+    <dimen name="negative_margin_100">-100dp</dimen>
+
+
+    <dimen name="defaultSize">100dp</dimen>
+    <dimen name="scrollViewMinSize">400dp</dimen>
+</resources>
