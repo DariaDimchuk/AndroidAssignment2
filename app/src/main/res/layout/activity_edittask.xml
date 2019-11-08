@@ -72,8 +72,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:minHeight="80dp"
-        android:layout_above="@+id/btnCancel"
+        android:layout_above="@+id/btnDelete"
         android:text="@string/btnSave"
+        android:textSize="26sp"/>
+
+
+    <Button
+        android:id="@+id/btnDelete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="80dp"
+        android:layout_above="@+id/btnCancel"
+        android:text="@string/btnDelete"
         android:textSize="26sp"/>
 
     <Button

@@ -38,9 +38,11 @@ public class EditTaskActivity extends AppCompatActivity {
     EditText etDiastoic;
     TextView txtDate;
     TextView txtTime;
+
     Button btnCancel;
     Button btnSave;
-    Date date;
+    Button btnDelete;
+
 
     DatabaseReference taskDb;
 
@@ -62,6 +64,7 @@ public class EditTaskActivity extends AppCompatActivity {
 
         btnCancel = findViewById(R.id.btnCancel);
         btnSave = findViewById(R.id.btnSave);
+        btnDelete = findViewById(R.id.btnDelete);
 
         Intent intent = getIntent();
         passedId = intent.getStringExtra("taskId");
@@ -69,22 +72,26 @@ public class EditTaskActivity extends AppCompatActivity {
         if(passedId != null){
             editMode = true;
 
+
             taskDb.orderByChild("taskId").equalTo(passedId)
                     .addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             HashMap obj = (HashMap)dataSnapshot.getValue();
-                            HashMap elements = (HashMap)obj.get(passedId);
 
-                            passedItem = new TaskItem(passedId);
-                            passedItem.setUserId(elements.get("userId").toString());
-                            passedItem.setSystolic(Integer.parseInt(elements.get("systolic").toString()));
-                            passedItem.setDiastolic(Integer.parseInt(elements.get("diastolic").toString()));
-                            passedItem.setCondition(elements.get("condition").toString());
-                            passedItem.setDate(elements.get("date").toString());
-                            passedItem.setTime(elements.get("time").toString());
+                            if(obj != null){
+                                HashMap elements = (HashMap)obj.get(passedId);
 
-                            populateFieldsWithEditValues(passedItem);
+                                passedItem = new TaskItem(passedId);
+                                passedItem.setUserId(elements.get("userId").toString());
+                                passedItem.setSystolic(Integer.parseInt(elements.get("systolic").toString()));
+                                passedItem.setDiastolic(Integer.parseInt(elements.get("diastolic").toString()));
+                                passedItem.setCondition(elements.get("condition").toString());
+                                passedItem.setDate(elements.get("date").toString());
+                                passedItem.setTime(elements.get("time").toString());
+
+                                populateFieldsWithEditValues(passedItem);
+                            }
                         }
 
                         @Override
@@ -93,7 +100,9 @@ public class EditTaskActivity extends AppCompatActivity {
                         }
                     });
         } else {
-            date = new Date();
+            btnDelete.setVisibility(View.GONE);
+
+            Date date = new Date();
 
             txtDate.setText(TaskItem.getDateString(date));
             txtTime.setText(TaskItem.getTimeString(date));
@@ -114,6 +123,13 @@ public class EditTaskActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 finish();
+            }
+        });
+
+        btnDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deleteTask();
             }
         });
 
@@ -235,10 +251,18 @@ public class EditTaskActivity extends AppCompatActivity {
 
 
 
-    private void deleteTask(String id) {
-        DatabaseReference dbRef = taskDb.child(id);
+    private void deleteTask() {
+        Task setRemoveTask = taskDb.child(passedId).removeValue();
 
-        Task setRemoveTask = dbRef.removeValue();
+        passedId = null;
+        editMode = false;
+        passedItem = null;
+
+
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+
+
         setRemoveTask.addOnSuccessListener(new OnSuccessListener() {
             @Override
             public void onSuccess(Object o) {
