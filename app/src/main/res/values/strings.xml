@@ -6,4 +6,7 @@
     <string name="btnSave">Save</string>
     <string name="btnCancel">Cancel</string>
 
+    <string name="emptyList">No entries found. Start by adding new entries.</string>
+    <string name="btnAddItem">Add</string>
+
 </resources>
