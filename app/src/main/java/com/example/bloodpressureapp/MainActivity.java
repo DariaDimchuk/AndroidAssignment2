@@ -19,9 +19,14 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -113,6 +118,8 @@ public class MainActivity extends AppCompatActivity {
         avgDias = 0;
         count = 0;
 
+        ArrayList<String> conditions = new ArrayList<>();
+
         EditText edtMTD = findViewById(R.id.edtMTD);
         String user = edtMTD.getText().toString();
 
@@ -126,6 +133,8 @@ public class MainActivity extends AppCompatActivity {
                 avgSys += task.getSystolic();
                 avgDias += task.getDiastolic();
                 count++;
+
+                conditions.add(task.getCondition());
             }
         }
 
@@ -133,12 +142,64 @@ public class MainActivity extends AppCompatActivity {
         avgSys /= count;
         avgDias /= count;
 
+
         //TODO Format decimal output
         TextView tvAvg = findViewById(R.id.txtAvg);
-        String averages = "Avg. Sys: " + avgSys + "\nAvg. Dias: " + avgDias;
+        String averages = "Avg Pressure: " + Math.round(avgSys) + "/" + Math.round(avgDias);
+
+
+        String avgCondition = determineMostCommonCondition(conditions);
+        if(avgCondition != null){
+            averages += "\nAvg Condition: " + avgCondition;
+        }
+
         tvAvg.setText(averages);
 
     }
+
+
+    private String determineMostCommonCondition(ArrayList<String> conditions){
+        String normalStr = getResources().getString(R.string.conditionNormal);
+        String elevatedStr = getResources().getString(R.string.conditionElevated);
+        String stage1Str = getResources().getString(R.string.conditionStage1);
+        String stage2Str = getResources().getString(R.string.conditionStage2);
+        String crisisStr = getResources().getString(R.string.conditionCrisis);
+
+
+        HashMap<String, Integer> counts = new HashMap<>();
+        counts.put(normalStr, 0);
+        counts.put(elevatedStr, 0);
+        counts.put(stage1Str, 0);
+        counts.put(stage2Str, 0);
+        counts.put(crisisStr, 0);
+
+        for (String c : conditions) {
+            if(c.compareTo(normalStr) == 0){
+                counts.put(normalStr, counts.get(normalStr) + 1);
+            } else if (c.compareTo(elevatedStr) == 0){
+                counts.put(elevatedStr, counts.get(elevatedStr) + 1);
+            } else if (c.compareTo(stage1Str) == 0){
+                counts.put(stage1Str, counts.get(stage1Str) + 1);
+            } else if (c.compareTo(stage2Str) == 0){
+                counts.put(stage2Str, counts.get(stage2Str) + 1);
+            } else if (c.compareTo(crisisStr) == 0){
+                counts.put(crisisStr, counts.get(crisisStr) + 1);
+            }
+        }
+
+        int maxValueInMap = (Collections.max(counts.values()));
+
+        for (Map.Entry<String, Integer> entry : counts.entrySet()) {
+            if (entry.getValue() == maxValueInMap) {
+                //TODO avg may be multiple conditions. If we want to show not just the first one,
+                // we can make an array, collect all, and display them
+                return entry.getKey();
+            }
+        }
+
+        return null;
+    }
+
 
     @Override
     protected void onStart() {
