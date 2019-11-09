@@ -46,18 +46,20 @@ public class EditTaskActivity extends AppCompatActivity {
 
     DatabaseReference taskDb;
 
-    List<TaskItem> taskItemList;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edittask);
+
+        Date date = new Date();
 
         taskDb = FirebaseDatabase.getInstance().getReference("tasks");
 
         txtDate = findViewById(R.id.txtDate);
         txtTime = findViewById(R.id.txtTime);
 
+        String dateTime = TaskItem.getDateString(date) + " " + TaskItem.getTimeString(date);
+        txtDate.setText(dateTime);
         etUserId = findViewById(R.id.edtUserId);
         etSystoic = findViewById(R.id.etSystolic);
         etDiastoic = findViewById(R.id.etDiastolic);
@@ -101,15 +103,10 @@ public class EditTaskActivity extends AppCompatActivity {
                     });
         } else {
             btnDelete.setVisibility(View.GONE);
-
-            Date date = new Date();
-
             txtDate.setText(TaskItem.getDateString(date));
             txtTime.setText(TaskItem.getTimeString(date));
         }
 
-
-        taskItemList = new ArrayList<TaskItem>();
 
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -117,7 +114,6 @@ public class EditTaskActivity extends AppCompatActivity {
                 updateItem();
             }
         });
-
 
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -167,8 +163,7 @@ public class EditTaskActivity extends AppCompatActivity {
     private void addTask(String user, String sys, String dias) {
         String id = taskDb.push().getKey();
 
-        //TODO
-        String condition = ""; //TODO generate condition
+        String condition = getConditionString(sys, dias);
 
         TaskItem taskItem = new TaskItem(id, user, Integer.parseInt(sys), Integer.parseInt(dias), condition);
 
@@ -176,7 +171,31 @@ public class EditTaskActivity extends AppCompatActivity {
         setTaskListeners(setValueTask);
     }
 
+    /**
+     * Get the name of the condition (e.g. Normal, Elevated)
+     * @param systolic as an int
+     * @param diastolic as an int
+     * @return String
+     */
+    private String getConditionString(String systolic, String diastolic){
 
+        int sysInt = Integer.parseInt(systolic);
+        int diasInt = Integer.parseInt(diastolic);
+
+        if(sysInt < 120 && diasInt < 80){
+            return getResources().getString(R.string.conditionNormal);
+        } else if (sysInt >= 120 && sysInt <= 129 && diasInt < 80){
+            return getResources().getString(R.string.conditionElevated);
+        } else if ((sysInt >= 130 && sysInt <= 139) || (diasInt >= 80 && diasInt <= 89)){
+            return getResources().getString(R.string.conditionStage1);
+        } else if ((sysInt >= 180) || (diasInt >= 120)){
+            return getResources().getString(R.string.conditionCrisis);
+        } else if ((sysInt >= 140) || (diasInt >= 90)){
+            return getResources().getString(R.string.conditionStage2);
+        }
+
+        return getResources().getString(R.string.conditionDefault);
+    }
 
     private void editTask(String user, String sys, String dias) {
         passedItem.setUserId(user);
@@ -217,7 +236,14 @@ public class EditTaskActivity extends AppCompatActivity {
         });
     }
 
-
+    /**
+     * Validate input fields are filled in.
+     * Validate systolic and diastolic values are valid.
+     * @param userId User name as String
+     * @param sys Systolic value as String
+     * @param dias Diastolic value as String
+     * @return boolean
+     */
     private boolean validateValues(String userId, String sys, String dias){
         if (TextUtils.isEmpty(userId)) {
             Toast.makeText(this, "You must enter a user name.", Toast.LENGTH_LONG).show();
@@ -229,7 +255,6 @@ public class EditTaskActivity extends AppCompatActivity {
                     Toast.LENGTH_LONG).show();
             return false;
         }
-
 
         int sysInt = Integer.parseInt(sys);
         int diasInt = Integer.parseInt(dias);
