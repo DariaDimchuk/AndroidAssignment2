@@ -64,35 +64,53 @@ public class TaskListAdapter extends ArrayAdapter<TaskItem> {
         tvSysDiasScore.setText(sys + "/" + dias);
         tvCondition.setText(taskItem.getCondition());
 
-        listViewItem.setBackgroundColor(getColor(sys, dias));
+//        listViewItem.setBackgroundColor(getColor(sys, dias));
+        listViewItem.setBackgroundColor(getColor(taskItem.getCondition()));
 
 
         return listViewItem;
     }
 
-
-    private int getColor(int systolic, int diastolic){
-        if(systolic < 120 && diastolic < 180){
-            return GREEN;
+    private int getColor(String condition) {
+        switch(condition) {
+            case "Normal":
+                return Color.rgb(110, 196, 86);
+            case "Elevated":
+                return Color.rgb(252, 224, 121);
+            case "High Blood Pressure (Stage 1)":
+                return Color.rgb(252, 189, 144);
+            case "High Blood Pressure (Stage 2)":
+                return Color.rgb(245, 128, 95);
+            case "Hypertensive Crisis":
+                return Color.rgb(191, 0, 0);
+            default:
+                return Color.GRAY;
         }
 
-        if(systolic >= 120 && systolic <= 129 && diastolic < 80){
-            return YELLOW;
-        }
-
-        if((systolic >= 130 && systolic <= 139) || (diastolic >= 80 && diastolic <= 89)){
-            return Color.rgb(255, 128, 128);
-        }
-
-        if((systolic >= 140) || (diastolic >= 90)){
-            return Color.rgb(255, 51, 51);
-        }
-
-        if((systolic >= 180) || (diastolic >= 120)){
-            return Color.RED;
-        }
-
-        return Color.GRAY;
     }
+
+//    private int getColor(int systolic, int diastolic){
+//        if(systolic < 120 && diastolic < 180){
+//            return GREEN;
+//        }
+//
+//        if(systolic >= 120 && systolic <= 129 && diastolic < 80){
+//            return YELLOW;
+//        }
+//
+//        if((systolic >= 130 && systolic <= 139) || (diastolic >= 80 && diastolic <= 89)){
+//            return Color.rgb(255, 128, 128);
+//        }
+//
+//        if((systolic >= 140) || (diastolic >= 90)){
+//            return Color.rgb(255, 51, 51);
+//        }
+//
+//        if((systolic >= 180) || (diastolic >= 120)){
+//            return Color.RED;
+//        }
+//
+//        return Color.GRAY;
+//    }
 
 }

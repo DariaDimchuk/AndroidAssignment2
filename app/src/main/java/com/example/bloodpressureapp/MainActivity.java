@@ -5,7 +5,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,6 +20,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 
@@ -29,6 +32,10 @@ public class MainActivity extends AppCompatActivity {
     List<TaskItem> taskItemList;
 
     Button btnAddNew;
+    Button btnCalc;
+    int count;
+    float avgSys;
+    float avgDias;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,10 +50,19 @@ public class MainActivity extends AppCompatActivity {
         taskItemList = new ArrayList<TaskItem>();
 
         btnAddNew = findViewById(R.id.btnAddItem);
+        btnCalc = findViewById(R.id.btnCalc);
+
         btnAddNew.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 addTask();
+            }
+        });
+
+        btnCalc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                calculateAverage();
             }
         });
 
@@ -63,13 +79,12 @@ public class MainActivity extends AppCompatActivity {
 
 
     /**
-     * Add task to database.
+     * Bring user to EditTaskActivity.
      */
     private void addTask() {
         Intent intent = new Intent(this, EditTaskActivity.class);
         startActivity(intent);
     }
-
 
 
     private void updateTask(String id) {
@@ -78,10 +93,57 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    /**
+     * Testing calculateAverage by returning month only.
+     * @param date
+     * @return
+     */
+    private String parseMonth(String date) {
+        //TODO Calculate Month to date by checking year AND date
+        String year = date.substring(0,4);
+        String month = date.substring(5, 7);
+        return month;
+    }
+
+    /**
+     * Calcualte Month to Date by user and current month.
+     */
+    private void calculateAverage() {
+        avgSys = 0;
+        avgDias = 0;
+        count = 0;
+
+        EditText edtMTD = findViewById(R.id.edtMTD);
+        String user = edtMTD.getText().toString();
+
+        Calendar now = Calendar.getInstance();
+        String currMonth = String.valueOf(now.get(Calendar.MONTH) + 1);
+
+        // Select all systolic and diastolic dates for user in current month
+        for (TaskItem task: taskItemList) {
+            if (task.getUserId().equalsIgnoreCase(user) &&
+                currMonth.equals(parseMonth(task.getDate()))) {
+                avgSys += task.getSystolic();
+                avgDias += task.getDiastolic();
+                count++;
+            }
+        }
+
+        // Calculate average
+        avgSys /= count;
+        avgDias /= count;
+
+        //TODO Format decimal output
+        TextView tvAvg = findViewById(R.id.txtAvg);
+        String averages = "Avg. Sys: " + avgSys + "\nAvg. Dias: " + avgDias;
+        tvAvg.setText(averages);
+
+    }
 
     @Override
     protected void onStart() {
         super.onStart();
+
         taskDb.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
