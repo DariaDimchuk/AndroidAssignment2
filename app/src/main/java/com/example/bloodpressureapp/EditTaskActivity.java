@@ -22,10 +22,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 
 public class EditTaskActivity extends AppCompatActivity {
 
@@ -201,6 +199,7 @@ public class EditTaskActivity extends AppCompatActivity {
         passedItem.setUserId(user);
         passedItem.setSystolic(Integer.parseInt(sys));
         passedItem.setDiastolic(Integer.parseInt(dias));
+        passedItem.setCondition(getConditionString(sys, dias));
 
         Task setValueTask = taskDb.child(passedId).setValue(passedItem);
         setTaskListeners(setValueTask);

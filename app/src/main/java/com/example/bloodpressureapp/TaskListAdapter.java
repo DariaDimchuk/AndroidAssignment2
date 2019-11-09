@@ -13,9 +13,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
-import static android.graphics.Color.GREEN;
-import static android.graphics.Color.YELLOW;
-
 public class TaskListAdapter extends ArrayAdapter<TaskItem> {
     private Activity context;
     private List<TaskItem> taskItemList;

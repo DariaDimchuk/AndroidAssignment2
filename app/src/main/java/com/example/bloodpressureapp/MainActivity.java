@@ -19,11 +19,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,10 +102,16 @@ public class MainActivity extends AppCompatActivity {
      * @return
      */
     private String parseMonth(String date) {
-        //TODO Calculate Month to date by checking year AND date
-        String year = date.substring(0,4);
-        String month = date.substring(5, 7);
-        return month;
+        return date.substring(5, 7);
+    }
+
+    /**
+     * Testing calculateAverage by returning month only.
+     * @param date
+     * @return
+     */
+    private String parseYear(String date) {
+        return date.substring(0,4);
     }
 
     /**
@@ -123,13 +127,17 @@ public class MainActivity extends AppCompatActivity {
         EditText edtMTD = findViewById(R.id.edtMTD);
         String user = edtMTD.getText().toString();
 
+
         Calendar now = Calendar.getInstance();
         String currMonth = String.valueOf(now.get(Calendar.MONTH) + 1);
+        String currYear = String.valueOf(now.get(Calendar.YEAR));
 
         // Select all systolic and diastolic dates for user in current month
         for (TaskItem task: taskItemList) {
-            if (task.getUserId().equalsIgnoreCase(user) &&
-                currMonth.equals(parseMonth(task.getDate()))) {
+            if (task.getUserId().equalsIgnoreCase(user)
+                    && currMonth.equals(parseMonth(task.getDate()))
+                    && currYear.equals(parseYear(task.getDate()))) {
+
                 avgSys += task.getSystolic();
                 avgDias += task.getDiastolic();
                 count++;
