@@ -8,6 +8,7 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+
     <EditText
         android:id="@+id/edtUserId"
         android:layout_margin="5dp"

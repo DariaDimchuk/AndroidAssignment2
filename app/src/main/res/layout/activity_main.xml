@@ -7,17 +7,45 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <EditText
-        android:id="@+id/edtMTD"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/hintMonthToDate" />
+        android:orientation="horizontal" >
 
-    <Button
-        android:id="@+id/btnCalc"
+        <EditText
+            android:id="@+id/edtMTD"
+            android:layout_width="wrap_content"
+            android:layout_weight="3"
+            android:layout_height="wrap_content"
+            android:hint="@string/hintMonthToDate" />
+
+        <Button
+            android:id="@+id/btnCalc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="@string/btnCalc"/>
+
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/btnCalc"/>
+        android:orientation="horizontal" >
+
+        <EditText
+            android:id="@+id/edtSearch"
+            android:layout_width="wrap_content"
+            android:layout_weight="3"
+            android:layout_height="wrap_content"
+            android:hint="@string/hintSearch" />
+
+        <Button
+            android:id="@+id/btnSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="@string/btnSearch"/>
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/txtAvg"
@@ -48,7 +76,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/defaultSize"
         android:layout_marginTop="@dimen/negative_margin_100"
-        android:textSize="18sp"
+        android:textSize="22sp"
         android:layout_gravity="bottom"
         android:text="@string/btnAddItem" />
 

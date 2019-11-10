@@ -127,6 +127,7 @@ public class EditTaskActivity extends AppCompatActivity {
             }
         });
 
+
     }
 
 
@@ -167,6 +168,11 @@ public class EditTaskActivity extends AppCompatActivity {
 
         Task setValueTask = taskDb.child(id).setValue(taskItem);
         setTaskListeners(setValueTask);
+
+        if (condition.equals(getResources().getString(R.string.conditionCrisis))) {
+            String warning = getResources().getString(R.string.crisisWarning);
+            Toast.makeText(this, warning, Toast.LENGTH_LONG).show();
+        }
     }
 
     /**

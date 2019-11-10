@@ -7,16 +7,20 @@
     <string name="btnDelete">Delete</string>
     <string name="btnCancel">Cancel</string>
     <string name="emptyList">No entries found. Start by adding new entries.</string>
-    <string name="btnAddItem">Add</string>
+    <string name="btnAddItem">Add BP Reading</string>
     <string name="conditionNormal">Normal</string>
     <string name="conditionElevated">Elevated</string>
     <string name="conditionStage1">High Blood Pressure (Stage 1)</string>
     <string name="conditionStage2">High Blood Pressure (Stage 2)</string>
     <string name="conditionCrisis">Hypertensive Crisis</string>
     <string name="conditionDefault">N/A</string>
-    <string name="txtAvg">Average goes here</string>
+    <string name="crisisWarning">WARNING: Your blood pressure is dangerously high.
+        Immediately seek medical attention.</string>
+    <string name="txtAvg">Month-To-Date Averages: N/A</string>
     <string name="hintMonthToDate">Calculate Average by Name</string>
     <string name="btnCalc">Calculate</string>
+    <string name="hintSearch">Enter User ID</string>
+    <string name="btnSearch">Search</string>
 
 
 </resources>

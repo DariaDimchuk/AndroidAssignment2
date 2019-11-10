@@ -17,16 +17,16 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-
+/**
+ * Main page for Blood Pressure Reading App.
+ */
 public class MainActivity extends AppCompatActivity {
 
     DatabaseReference taskDb;
@@ -36,9 +36,14 @@ public class MainActivity extends AppCompatActivity {
 
     Button btnAddNew;
     Button btnCalc;
+    Button btnSearch;
+
     int count;
     float avgSys;
     float avgDias;
+
+    EditText edtSearch;
+    String searchKeyword;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
 
         btnAddNew = findViewById(R.id.btnAddItem);
         btnCalc = findViewById(R.id.btnCalc);
+        btnSearch = findViewById(R.id.btnSearch);
 
         btnAddNew.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -69,6 +75,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        btnSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                edtSearch = findViewById(R.id.edtSearch);
+                searchKeyword = edtSearch.getText().toString();
+                findData();
+            }
+        });
+
 
         lvTasks.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -80,16 +95,58 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
     /**
-     * Bring user to EditTaskActivity.
+     * Search and replace taskItemList with tasks that match the userId.
      */
+    public void findData() {
+        taskDb = FirebaseDatabase.getInstance().getReference("tasks");
+        Query query = taskDb.orderByChild("userId").startAt(searchKeyword)
+                .endAt(searchKeyword+"\uf8ff");
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (taskItemList != null) {
+                    taskItemList.clear();
+                }
+
+                for (DataSnapshot taskSnapshot : dataSnapshot.getChildren()) {
+                    TaskItem taskItem = taskSnapshot.getValue(TaskItem.class);
+                    if (taskItem.getUserId().equals(searchKeyword)) {
+                        taskItemList.add(taskItem);
+                    }
+
+                }
+
+                TaskListAdapter adapter = new TaskListAdapter(MainActivity.this, taskItemList);
+
+                if (lvTasks != null) {
+                    lvTasks.setAdapter(adapter);
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Toast.makeText(MainActivity.this, "Search cancelled", Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+
+
+        /**
+         * Bring user to EditTaskActivity.
+         */
     private void addTask() {
         Intent intent = new Intent(this, EditTaskActivity.class);
         startActivity(intent);
     }
 
 
+    /**
+     * Bring user to EditTaskActivity with taskId passed.
+     * @param id String
+     */
     private void updateTask(String id) {
         Intent intent = new Intent(this, EditTaskActivity.class);
         intent.putExtra("taskId", id);
@@ -97,18 +154,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Testing calculateAverage by returning month only.
-     * @param date
-     * @return
+     * Parse month from date as String.
+     * @param date String
+     * @return String
      */
     private String parseMonth(String date) {
         return date.substring(5, 7);
     }
 
     /**
-     * Testing calculateAverage by returning month only.
-     * @param date
-     * @return
+     * Parse year from date as String.
+     * @param date String
+     * @return String
      */
     private String parseYear(String date) {
         return date.substring(0,4);
@@ -122,11 +179,8 @@ public class MainActivity extends AppCompatActivity {
         avgDias = 0;
         count = 0;
 
-        ArrayList<String> conditions = new ArrayList<>();
-
         EditText edtMTD = findViewById(R.id.edtMTD);
         String user = edtMTD.getText().toString();
-
 
         Calendar now = Calendar.getInstance();
         String currMonth = String.valueOf(now.get(Calendar.MONTH) + 1);
@@ -141,8 +195,6 @@ public class MainActivity extends AppCompatActivity {
                 avgSys += task.getSystolic();
                 avgDias += task.getDiastolic();
                 count++;
-
-                conditions.add(task.getCondition());
             }
         }
 
@@ -150,64 +202,45 @@ public class MainActivity extends AppCompatActivity {
         avgSys /= count;
         avgDias /= count;
 
+        int sysInt = Math.round(avgSys);
+        int diasInt =  Math.round(avgDias);
 
-        //TODO Format decimal output
+        String avgCondition = getConditionString(String.valueOf(sysInt),
+                String.valueOf(diasInt));
+
         TextView tvAvg = findViewById(R.id.txtAvg);
-        String averages = "Avg Pressure: " + Math.round(avgSys) + "/" + Math.round(avgDias);
+        String averages = user + "\nAvg Pressure: " + sysInt + "/" + diasInt;
 
-
-        String avgCondition = determineMostCommonCondition(conditions);
-        if(avgCondition != null){
-            averages += "\nAvg Condition: " + avgCondition;
-        }
-
+        averages += "\nAvg Condition: " + avgCondition;
         tvAvg.setText(averages);
 
     }
 
+    /**
+     * Get the name of the condition (e.g. Normal, Elevated)
+     * @param systolic as an int
+     * @param diastolic as an int
+     * @return String
+     */
+    private String getConditionString(String systolic, String diastolic){
 
-    private String determineMostCommonCondition(ArrayList<String> conditions){
-        String normalStr = getResources().getString(R.string.conditionNormal);
-        String elevatedStr = getResources().getString(R.string.conditionElevated);
-        String stage1Str = getResources().getString(R.string.conditionStage1);
-        String stage2Str = getResources().getString(R.string.conditionStage2);
-        String crisisStr = getResources().getString(R.string.conditionCrisis);
+        int sysInt = Integer.parseInt(systolic);
+        int diasInt = Integer.parseInt(diastolic);
 
-
-        HashMap<String, Integer> counts = new HashMap<>();
-        counts.put(normalStr, 0);
-        counts.put(elevatedStr, 0);
-        counts.put(stage1Str, 0);
-        counts.put(stage2Str, 0);
-        counts.put(crisisStr, 0);
-
-        for (String c : conditions) {
-            if(c.compareTo(normalStr) == 0){
-                counts.put(normalStr, counts.get(normalStr) + 1);
-            } else if (c.compareTo(elevatedStr) == 0){
-                counts.put(elevatedStr, counts.get(elevatedStr) + 1);
-            } else if (c.compareTo(stage1Str) == 0){
-                counts.put(stage1Str, counts.get(stage1Str) + 1);
-            } else if (c.compareTo(stage2Str) == 0){
-                counts.put(stage2Str, counts.get(stage2Str) + 1);
-            } else if (c.compareTo(crisisStr) == 0){
-                counts.put(crisisStr, counts.get(crisisStr) + 1);
-            }
+        if(sysInt < 120 && diasInt < 80){
+            return getResources().getString(R.string.conditionNormal);
+        } else if (sysInt >= 120 && sysInt <= 129 && diasInt < 80){
+            return getResources().getString(R.string.conditionElevated);
+        } else if ((sysInt >= 130 && sysInt <= 139) || (diasInt >= 80 && diasInt <= 89)){
+            return getResources().getString(R.string.conditionStage1);
+        } else if ((sysInt >= 180) || (diasInt >= 120)){
+            return getResources().getString(R.string.conditionCrisis);
+        } else if ((sysInt >= 140) || (diasInt >= 90)){
+            return getResources().getString(R.string.conditionStage2);
         }
 
-        int maxValueInMap = (Collections.max(counts.values()));
-
-        for (Map.Entry<String, Integer> entry : counts.entrySet()) {
-            if (entry.getValue() == maxValueInMap) {
-                //TODO avg may be multiple conditions. If we want to show not just the first one,
-                // we can make an array, collect all, and display them
-                return entry.getKey();
-            }
-        }
-
-        return null;
+        return getResources().getString(R.string.conditionDefault);
     }
-
 
     @Override
     protected void onStart() {
