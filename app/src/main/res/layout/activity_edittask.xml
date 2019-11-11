@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="30dp"
+    android:layout_marginTop="@dimen/margin_30"
     android:orientation="vertical"
     tools:context=".MainActivity">
 
@@ -13,9 +13,9 @@
         android:layout_margin="5dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="80dp"
+        android:minHeight="@dimen/textHeight"
         android:ems="10"
-        android:textSize="26sp"
+        android:textSize="@dimen/fontSize_26"
         android:hint="@string/hintUserId"
         android:inputType="textPersonName" />
 
@@ -36,30 +36,30 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/edtUserId"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="30dp"
-        android:layout_marginEnd="5dp"
-        android:layout_marginBottom="5dp"
+        android:layout_marginStart="@dimen/margin_5"
+        android:layout_marginTop="@dimen/margin_30"
+        android:layout_marginEnd="@dimen/margin_5"
+        android:layout_marginBottom="@dimen/margin_5"
         android:ems="10"
         android:hint="@string/hintSystolic"
         android:inputType="number"
-        android:minHeight="80dp"
-        android:textSize="26sp" />
+        android:minHeight="@dimen/textHeight"
+        android:textSize="@dimen/fontSize_26" />
 
     <EditText
         android:id="@+id/etDiastolic"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/etSystolic"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="30dp"
-        android:layout_marginEnd="5dp"
-        android:layout_marginBottom="5dp"
+        android:layout_marginStart="@dimen/margin_5"
+        android:layout_marginTop="@dimen/margin_30"
+        android:layout_marginEnd="@dimen/margin_5"
+        android:layout_marginBottom="@dimen/margin_5"
         android:ems="10"
         android:hint="@string/hintDiastolic"
         android:inputType="number"
-        android:minHeight="60dp"
-        android:textSize="26sp" />
+        android:minHeight="@dimen/textHeight"
+        android:textSize="@dimen/fontSize_26" />
 
     <Button
         android:id="@+id/btnSave"
@@ -68,7 +68,7 @@
         android:minHeight="@dimen/btnHeight"
         android:layout_above="@+id/btnDelete"
         android:text="@string/btnSave"
-        android:textSize="26sp"/>
+        android:textSize="@dimen/fontSize_26"/>
 
 
     <Button
@@ -78,7 +78,7 @@
         android:minHeight="@dimen/btnHeight"
         android:layout_above="@+id/btnCancel"
         android:text="@string/btnDelete"
-        android:textSize="26sp"/>
+        android:textSize="@dimen/fontSize_26"/>
 
     <Button
         android:id="@+id/btnCancel"
@@ -87,7 +87,7 @@
         android:minHeight="@dimen/btnHeight"
         android:text="@string/btnCancel"
         android:layout_alignParentBottom="true"
-        android:textSize="26sp"/>
+        android:textSize="@dimen/fontSize_26"/>
 
 
 </RelativeLayout>
