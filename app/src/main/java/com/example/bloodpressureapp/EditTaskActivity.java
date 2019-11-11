@@ -16,11 +16,8 @@ import com.google.android.gms.tasks.OnCanceledListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -28,7 +25,6 @@ import java.util.HashMap;
 public class EditTaskActivity extends AppCompatActivity {
 
     boolean editMode;
-    String passedId;
     TaskItem passedItem;
 
     EditText etUserId;
@@ -67,38 +63,12 @@ public class EditTaskActivity extends AppCompatActivity {
         btnDelete = findViewById(R.id.btnDelete);
 
         Intent intent = getIntent();
-        passedId = intent.getStringExtra("taskId");
+        Bundle b = intent.getBundleExtra("bundle");
 
-        if(passedId != null){
+        if(b != null){
             editMode = true;
-
-
-            taskDb.orderByChild("taskId").equalTo(passedId)
-                    .addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            HashMap obj = (HashMap)dataSnapshot.getValue();
-
-                            if(obj != null){
-                                HashMap elements = (HashMap)obj.get(passedId);
-
-                                passedItem = new TaskItem(passedId);
-                                passedItem.setUserId(elements.get("userId").toString());
-                                passedItem.setSystolic(Integer.parseInt(elements.get("systolic").toString()));
-                                passedItem.setDiastolic(Integer.parseInt(elements.get("diastolic").toString()));
-                                passedItem.setCondition(elements.get("condition").toString());
-                                passedItem.setDate(elements.get("date").toString());
-                                passedItem.setTime(elements.get("time").toString());
-
-                                populateFieldsWithEditValues(passedItem);
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                        }
-                    });
+            passedItem = (TaskItem)b.getSerializable("task");
+            populateFieldsWithEditValues(passedItem);
         } else {
             btnDelete.setVisibility(View.GONE);
             txtDate.setText(TaskItem.getDateString(date));
@@ -127,7 +97,26 @@ public class EditTaskActivity extends AppCompatActivity {
             }
         });
 
+
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putString("userTxt", etUserId.getText().toString());
+        savedInstanceState.putString("sysTxt", etSystoic.getText().toString());
+        savedInstanceState.putString("diasTxt", etDiastoic.getText().toString());
+    }
+
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        etUserId.setText(savedInstanceState.getString("userTxt"));
+        etSystoic.setText(savedInstanceState.getString("sysTxt"));
+        etDiastoic.setText(savedInstanceState.getString("diasTxt"));
+    }
+
 
 
     public void populateFieldsWithEditValues(TaskItem t){
@@ -167,6 +156,11 @@ public class EditTaskActivity extends AppCompatActivity {
 
         Task setValueTask = taskDb.child(id).setValue(taskItem);
         setTaskListeners(setValueTask);
+
+        if (condition.equals(getResources().getString(R.string.conditionCrisis))) {
+            String warning = getResources().getString(R.string.crisisWarning);
+            Toast.makeText(this, warning, Toast.LENGTH_LONG).show();
+        }
     }
 
     /**
@@ -201,7 +195,7 @@ public class EditTaskActivity extends AppCompatActivity {
         passedItem.setDiastolic(Integer.parseInt(dias));
         passedItem.setCondition(getConditionString(sys, dias));
 
-        Task setValueTask = taskDb.child(passedId).setValue(passedItem);
+        Task setValueTask = taskDb.child(passedItem.getTaskId()).setValue(passedItem);
         setTaskListeners(setValueTask);
     }
 
@@ -276,9 +270,8 @@ public class EditTaskActivity extends AppCompatActivity {
 
 
     private void deleteTask() {
-        Task setRemoveTask = taskDb.child(passedId).removeValue();
+        Task setRemoveTask = taskDb.child(passedItem.getTaskId()).removeValue();
 
-        passedId = null;
         editMode = false;
         passedItem = null;
 

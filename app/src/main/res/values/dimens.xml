@@ -1,10 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="margin_2">2dp</dimen>
+    <dimen name="margin_5">5dp</dimen>
+    <dimen name="margin_10">10dp</dimen>
+    <dimen name="margin_20">20dp</dimen>
+    <dimen name="margin_25">25dp</dimen>
+    <dimen name="margin_30">30dp</dimen>
+    <dimen name="margin_80">80dp</dimen>
     <dimen name="margin_100">100dp</dimen>
-    <dimen name="negative_margin_100">-100dp</dimen>
+    <dimen name="negative_margin_80">-80dp</dimen>
 
 
-    <dimen name="defaultSize">100dp</dimen>
+    <dimen name="textHeight">60dp</dimen>
+    <dimen name="btnHeight">60dp</dimen>
+
+    <dimen name="defaultSize">80dp</dimen>
     <dimen name="scrollViewMinSize">400dp</dimen>
+
+
+    <dimen name="fontSize_22">22sp</dimen>
+    <dimen name="fontSize_26">26sp</dimen>
 </resources>

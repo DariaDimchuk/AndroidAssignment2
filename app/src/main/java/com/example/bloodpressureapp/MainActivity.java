@@ -17,16 +17,16 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-
+/**
+ * Main page for Blood Pressure Reading App.
+ */
 public class MainActivity extends AppCompatActivity {
 
     DatabaseReference taskDb;
@@ -35,10 +35,19 @@ public class MainActivity extends AppCompatActivity {
     List<TaskItem> taskItemList;
 
     Button btnAddNew;
+
     Button btnCalc;
+    Button btnClearCalc;
+    String calculationUser;
+
+    Button btnSearch;
+    Button btnClearSearch;
+    String searchedUser;
+
     int count;
     float avgSys;
     float avgDias;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +63,54 @@ public class MainActivity extends AppCompatActivity {
 
         btnAddNew = findViewById(R.id.btnAddItem);
         btnCalc = findViewById(R.id.btnCalc);
+        btnClearCalc = findViewById(R.id.btnClearCalculation);
+        btnSearch = findViewById(R.id.btnSearch);
+        btnClearSearch = findViewById(R.id.btnClearFilter);
 
+        addButtonListeners();
+
+        lvTasks.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                TaskItem taskItem = taskItemList.get(position);
+                updateTask(taskItem);
+            }
+        });
+
+    }
+
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putString("searchedUser", searchedUser);
+        savedInstanceState.putString("calculationUser", calculationUser);
+
+        TextView tvAvg = findViewById(R.id.txtAvg);
+        savedInstanceState.putString("avgCalculationTxt", tvAvg.getText().toString());
+        savedInstanceState.putBoolean("calculationVisible", tvAvg.getVisibility() == 0);
+    }
+
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        searchedUser = savedInstanceState.getString("searchedUser");
+        calculationUser = savedInstanceState.getString("calculationUser");
+
+        TextView tvAvg = findViewById(R.id.txtAvg);
+        tvAvg.setText(savedInstanceState.getString("avgCalculationTxt"));
+        boolean isVisible = savedInstanceState.getBoolean("calculationVisible");
+        tvAvg.setVisibility(isVisible ? View.VISIBLE : View.GONE);
+
+        if(searchedUser != null && !searchedUser.isEmpty()){
+            findData();
+        }
+    }
+
+
+
+    private void addButtonListeners(){
         btnAddNew.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -65,154 +121,237 @@ public class MainActivity extends AppCompatActivity {
         btnCalc.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                calculateAverage();
+                EditText edtMTD = findViewById(R.id.edtMTD);
+                calculationUser = edtMTD.getText().toString();
+
+                if(calculationUser == null || calculationUser.isEmpty()){
+                    Toast.makeText(MainActivity.this,
+                            "Must enter user name for calculation",Toast.LENGTH_LONG).show();
+                } else {
+                    calculateAverage();
+                }
             }
         });
 
-
-        lvTasks.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        btnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                TaskItem taskItem = taskItemList.get(position);
-                updateTask(taskItem.getTaskId());
+            public void onClick(View v) {
+                EditText edtSearch = findViewById(R.id.edtSearch);
+                searchedUser = edtSearch.getText().toString();
+
+                if(searchedUser == null || searchedUser.isEmpty()){
+                    Toast.makeText(MainActivity.this,
+                            "Search cannot be empty",Toast.LENGTH_LONG).show();
+                } else {
+                    findData();
+                }
             }
         });
 
+        btnClearSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                EditText edtSearch = findViewById(R.id.edtSearch);
+                edtSearch.setText("");
+                searchedUser = "";
+                resetList();
+            }
+        });
+
+        btnClearCalc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                EditText edtMTD = findViewById(R.id.edtMTD);
+                edtMTD.setText("");
+                calculationUser = "";
+                TextView tvAvg = findViewById(R.id.txtAvg);
+                tvAvg.setVisibility(View.GONE);
+            }
+        });
     }
 
 
     /**
-     * Bring user to EditTaskActivity.
+     * Search and replace taskItemList with tasks that match the userId.
      */
+    public void findData() {
+        taskDb = FirebaseDatabase.getInstance().getReference("tasks");
+        Query query = taskDb.orderByChild("userId").startAt(searchedUser)
+                .endAt(searchedUser+"\uf8ff");
+
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (taskItemList != null) {
+                    taskItemList.clear();
+                }
+
+                for (DataSnapshot taskSnapshot : dataSnapshot.getChildren()) {
+                    TaskItem taskItem = taskSnapshot.getValue(TaskItem.class);
+                    if (taskItem.getUserId().equals(searchedUser)) {
+                        taskItemList.add(taskItem);
+                    }
+                }
+
+                TaskListAdapter adapter = new TaskListAdapter(MainActivity.this, taskItemList);
+
+                if (lvTasks != null) {
+                    lvTasks.setAdapter(adapter);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Toast.makeText(MainActivity.this, "Search cancelled", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        TextView emptyList = findViewById(R.id.empty_list_item);
+        emptyList.setText(getResources().getString(R.string.emptyList_filterPrompt));
+    }
+
+
+
+        /**
+         * Bring user to EditTaskActivity.
+         */
     private void addTask() {
         Intent intent = new Intent(this, EditTaskActivity.class);
         startActivity(intent);
     }
 
 
-    private void updateTask(String id) {
+    /**
+     * Bring user to EditTaskActivity with taskId passed.
+     * @param task TaskItem
+     */
+    private void updateTask(TaskItem task) {
         Intent intent = new Intent(this, EditTaskActivity.class);
-        intent.putExtra("taskId", id);
+        Bundle b = new Bundle();
+        b.putSerializable("task", task);
+        intent.putExtra("bundle", b);
+
         startActivity(intent);
     }
 
+
     /**
-     * Testing calculateAverage by returning month only.
-     * @param date
-     * @return
+     * Parse month from date as String.
+     * @param date String
+     * @return String
      */
     private String parseMonth(String date) {
         return date.substring(5, 7);
     }
 
+
     /**
-     * Testing calculateAverage by returning month only.
-     * @param date
-     * @return
+     * Parse year from date as String.
+     * @param date String
+     * @return String
      */
     private String parseYear(String date) {
         return date.substring(0,4);
     }
 
+
     /**
      * Calcualte Month to Date by user and current month.
      */
     private void calculateAverage() {
-        avgSys = 0;
-        avgDias = 0;
-        count = 0;
+        taskDb.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                avgSys = 0;
+                avgDias = 0;
+                count = 0;
 
-        ArrayList<String> conditions = new ArrayList<>();
+                Calendar now = Calendar.getInstance();
+                String currMonth = String.valueOf(now.get(Calendar.MONTH) + 1);
+                String currYear = String.valueOf(now.get(Calendar.YEAR));
 
-        EditText edtMTD = findViewById(R.id.edtMTD);
-        String user = edtMTD.getText().toString();
+                for (DataSnapshot taskSnapshot : dataSnapshot.getChildren()) {
+                    TaskItem task = taskSnapshot.getValue(TaskItem.class);
 
+                    if (task.getUserId().equalsIgnoreCase(calculationUser)
+                            && currMonth.equals(parseMonth(task.getDate()))
+                            && currYear.equals(parseYear(task.getDate()))) {
 
-        Calendar now = Calendar.getInstance();
-        String currMonth = String.valueOf(now.get(Calendar.MONTH) + 1);
-        String currYear = String.valueOf(now.get(Calendar.YEAR));
+                        avgSys += task.getSystolic();
+                        avgDias += task.getDiastolic();
+                        count++;
+                    }
+                }
 
-        // Select all systolic and diastolic dates for user in current month
-        for (TaskItem task: taskItemList) {
-            if (task.getUserId().equalsIgnoreCase(user)
-                    && currMonth.equals(parseMonth(task.getDate()))
-                    && currYear.equals(parseYear(task.getDate()))) {
+                TextView tvAvg = findViewById(R.id.txtAvg);
 
-                avgSys += task.getSystolic();
-                avgDias += task.getDiastolic();
-                count++;
+                if(count == 0){
+                    tvAvg.setText(calculationUser + " not found");
+                } else {
+                    avgSys /= count;
+                    avgDias /= count;
 
-                conditions.add(task.getCondition());
+                    int sysInt = Math.round(avgSys);
+                    int diasInt =  Math.round(avgDias);
+
+                    String avgCondition = getConditionString(String.valueOf(sysInt),
+                            String.valueOf(diasInt));
+
+                    String averages = calculationUser + "\nAvg Pressure: " + sysInt + "/" + diasInt;
+
+                    averages += "\nAvg Condition: " + avgCondition;
+                    tvAvg.setText(averages);
+                }
+
+                tvAvg.setVisibility(View.VISIBLE);
+
             }
-        }
-
-        // Calculate average
-        avgSys /= count;
-        avgDias /= count;
 
 
-        //TODO Format decimal output
-        TextView tvAvg = findViewById(R.id.txtAvg);
-        String averages = "Avg Pressure: " + Math.round(avgSys) + "/" + Math.round(avgDias);
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(MainActivity.this,
+                        "Task cancelled.",Toast.LENGTH_LONG).show();
+            }
 
-
-        String avgCondition = determineMostCommonCondition(conditions);
-        if(avgCondition != null){
-            averages += "\nAvg Condition: " + avgCondition;
-        }
-
-        tvAvg.setText(averages);
-
+        });
     }
 
+    /**
+     * Get the name of the condition (e.g. Normal, Elevated)
+     * @param systolic as an int
+     * @param diastolic as an int
+     * @return String
+     */
+    private String getConditionString(String systolic, String diastolic){
 
-    private String determineMostCommonCondition(ArrayList<String> conditions){
-        String normalStr = getResources().getString(R.string.conditionNormal);
-        String elevatedStr = getResources().getString(R.string.conditionElevated);
-        String stage1Str = getResources().getString(R.string.conditionStage1);
-        String stage2Str = getResources().getString(R.string.conditionStage2);
-        String crisisStr = getResources().getString(R.string.conditionCrisis);
+        int sysInt = Integer.parseInt(systolic);
+        int diasInt = Integer.parseInt(diastolic);
 
-
-        HashMap<String, Integer> counts = new HashMap<>();
-        counts.put(normalStr, 0);
-        counts.put(elevatedStr, 0);
-        counts.put(stage1Str, 0);
-        counts.put(stage2Str, 0);
-        counts.put(crisisStr, 0);
-
-        for (String c : conditions) {
-            if(c.compareTo(normalStr) == 0){
-                counts.put(normalStr, counts.get(normalStr) + 1);
-            } else if (c.compareTo(elevatedStr) == 0){
-                counts.put(elevatedStr, counts.get(elevatedStr) + 1);
-            } else if (c.compareTo(stage1Str) == 0){
-                counts.put(stage1Str, counts.get(stage1Str) + 1);
-            } else if (c.compareTo(stage2Str) == 0){
-                counts.put(stage2Str, counts.get(stage2Str) + 1);
-            } else if (c.compareTo(crisisStr) == 0){
-                counts.put(crisisStr, counts.get(crisisStr) + 1);
-            }
+        if(sysInt < 120 && diasInt < 80){
+            return getResources().getString(R.string.conditionNormal);
+        } else if (sysInt >= 120 && sysInt <= 129 && diasInt < 80){
+            return getResources().getString(R.string.conditionElevated);
+        } else if ((sysInt >= 130 && sysInt <= 139) || (diasInt >= 80 && diasInt <= 89)){
+            return getResources().getString(R.string.conditionStage1);
+        } else if ((sysInt >= 180) || (diasInt >= 120)){
+            return getResources().getString(R.string.conditionCrisis);
+        } else if ((sysInt >= 140) || (diasInt >= 90)){
+            return getResources().getString(R.string.conditionStage2);
         }
 
-        int maxValueInMap = (Collections.max(counts.values()));
-
-        for (Map.Entry<String, Integer> entry : counts.entrySet()) {
-            if (entry.getValue() == maxValueInMap) {
-                //TODO avg may be multiple conditions. If we want to show not just the first one,
-                // we can make an array, collect all, and display them
-                return entry.getKey();
-            }
-        }
-
-        return null;
+        return getResources().getString(R.string.conditionDefault);
     }
-
 
     @Override
     protected void onStart() {
         super.onStart();
 
+        resetList();
+
+    }
+
+    private void resetList(){
         taskDb.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -242,6 +381,8 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
+        TextView emptyList = findViewById(R.id.empty_list_item);
+        emptyList.setText(getResources().getString(R.string.emptyList_addPrompt));
     }
 
 }
