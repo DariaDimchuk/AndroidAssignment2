@@ -6,7 +6,10 @@
     <string name="btnSave">Save</string>
     <string name="btnDelete">Delete</string>
     <string name="btnCancel">Cancel</string>
-    <string name="emptyList">No entries found. Start by adding new entries.</string>
+
+    <string name="emptyList_addPrompt">No entries found. \nStart by adding new entries.</string>
+    <string name="emptyList_filterPrompt">No entries found. \nUpdate or clear your search filter.</string>
+
     <string name="btnAddItem">Add BP Reading</string>
     <string name="conditionNormal">Normal</string>
     <string name="conditionElevated">Elevated</string>
@@ -16,11 +19,11 @@
     <string name="conditionDefault">N/A</string>
     <string name="crisisWarning">WARNING: Your blood pressure is dangerously high.
         Immediately seek medical attention.</string>
-    <string name="txtAvg">Month-To-Date Averages: N/A</string>
     <string name="hintMonthToDate">Calculate Average by Name</string>
     <string name="btnCalc">Calculate</string>
     <string name="hintSearch">Enter User ID</string>
     <string name="btnSearch">Search</string>
+    <string name="btnClearTxt">Clear</string>
 
 
 </resources>

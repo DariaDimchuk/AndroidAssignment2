@@ -1,9 +1,10 @@
 package com.example.bloodpressureapp;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class TaskItem {
+public class TaskItem implements Serializable {
     public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     public static SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm");
 

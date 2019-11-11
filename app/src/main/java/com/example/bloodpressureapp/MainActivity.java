@@ -35,15 +35,19 @@ public class MainActivity extends AppCompatActivity {
     List<TaskItem> taskItemList;
 
     Button btnAddNew;
+
     Button btnCalc;
+    Button btnClearCalc;
+    String calculationUser;
+
     Button btnSearch;
+    Button btnClearSearch;
+    String searchedUser;
 
     int count;
     float avgSys;
     float avgDias;
 
-    EditText edtSearch;
-    String searchKeyword;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,8 +63,54 @@ public class MainActivity extends AppCompatActivity {
 
         btnAddNew = findViewById(R.id.btnAddItem);
         btnCalc = findViewById(R.id.btnCalc);
+        btnClearCalc = findViewById(R.id.btnClearCalculation);
         btnSearch = findViewById(R.id.btnSearch);
+        btnClearSearch = findViewById(R.id.btnClearFilter);
 
+        addButtonListeners();
+
+        lvTasks.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                TaskItem taskItem = taskItemList.get(position);
+                updateTask(taskItem);
+            }
+        });
+
+    }
+
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putString("searchedUser", searchedUser);
+        savedInstanceState.putString("calculationUser", calculationUser);
+
+        TextView tvAvg = findViewById(R.id.txtAvg);
+        savedInstanceState.putString("avgCalculationTxt", tvAvg.getText().toString());
+        savedInstanceState.putBoolean("calculationVisible", tvAvg.getVisibility() == 0);
+    }
+
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        searchedUser = savedInstanceState.getString("searchedUser");
+        calculationUser = savedInstanceState.getString("calculationUser");
+
+        TextView tvAvg = findViewById(R.id.txtAvg);
+        tvAvg.setText(savedInstanceState.getString("avgCalculationTxt"));
+        boolean isVisible = savedInstanceState.getBoolean("calculationVisible");
+        tvAvg.setVisibility(isVisible ? View.VISIBLE : View.GONE);
+
+        if(searchedUser != null && !searchedUser.isEmpty()){
+            findData();
+        }
+    }
+
+
+
+    private void addButtonListeners(){
         btnAddNew.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -71,37 +121,64 @@ public class MainActivity extends AppCompatActivity {
         btnCalc.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                calculateAverage();
+                EditText edtMTD = findViewById(R.id.edtMTD);
+                calculationUser = edtMTD.getText().toString();
+
+                if(calculationUser == null || calculationUser.isEmpty()){
+                    Toast.makeText(MainActivity.this,
+                            "Must enter user name for calculation",Toast.LENGTH_LONG).show();
+                } else {
+                    calculateAverage();
+                }
             }
         });
 
         btnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                edtSearch = findViewById(R.id.edtSearch);
-                searchKeyword = edtSearch.getText().toString();
-                findData();
+                EditText edtSearch = findViewById(R.id.edtSearch);
+                searchedUser = edtSearch.getText().toString();
+
+                if(searchedUser == null || searchedUser.isEmpty()){
+                    Toast.makeText(MainActivity.this,
+                            "Search cannot be empty",Toast.LENGTH_LONG).show();
+                } else {
+                    findData();
+                }
             }
         });
 
-
-        lvTasks.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        btnClearSearch.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                TaskItem taskItem = taskItemList.get(position);
-                updateTask(taskItem.getTaskId());
+            public void onClick(View v) {
+                EditText edtSearch = findViewById(R.id.edtSearch);
+                edtSearch.setText("");
+                searchedUser = "";
+                resetList();
             }
         });
 
+        btnClearCalc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                EditText edtMTD = findViewById(R.id.edtMTD);
+                edtMTD.setText("");
+                calculationUser = "";
+                TextView tvAvg = findViewById(R.id.txtAvg);
+                tvAvg.setVisibility(View.GONE);
+            }
+        });
     }
+
 
     /**
      * Search and replace taskItemList with tasks that match the userId.
      */
     public void findData() {
         taskDb = FirebaseDatabase.getInstance().getReference("tasks");
-        Query query = taskDb.orderByChild("userId").startAt(searchKeyword)
-                .endAt(searchKeyword+"\uf8ff");
+        Query query = taskDb.orderByChild("userId").startAt(searchedUser)
+                .endAt(searchedUser+"\uf8ff");
+
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -111,10 +188,9 @@ public class MainActivity extends AppCompatActivity {
 
                 for (DataSnapshot taskSnapshot : dataSnapshot.getChildren()) {
                     TaskItem taskItem = taskSnapshot.getValue(TaskItem.class);
-                    if (taskItem.getUserId().equals(searchKeyword)) {
+                    if (taskItem.getUserId().equals(searchedUser)) {
                         taskItemList.add(taskItem);
                     }
-
                 }
 
                 TaskListAdapter adapter = new TaskListAdapter(MainActivity.this, taskItemList);
@@ -122,7 +198,6 @@ public class MainActivity extends AppCompatActivity {
                 if (lvTasks != null) {
                     lvTasks.setAdapter(adapter);
                 }
-
             }
 
             @Override
@@ -130,6 +205,9 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Search cancelled", Toast.LENGTH_LONG).show();
             }
         });
+
+        TextView emptyList = findViewById(R.id.empty_list_item);
+        emptyList.setText(getResources().getString(R.string.emptyList_filterPrompt));
     }
 
 
@@ -145,13 +223,17 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Bring user to EditTaskActivity with taskId passed.
-     * @param id String
+     * @param task TaskItem
      */
-    private void updateTask(String id) {
+    private void updateTask(TaskItem task) {
         Intent intent = new Intent(this, EditTaskActivity.class);
-        intent.putExtra("taskId", id);
+        Bundle b = new Bundle();
+        b.putSerializable("task", task);
+        intent.putExtra("bundle", b);
+
         startActivity(intent);
     }
+
 
     /**
      * Parse month from date as String.
@@ -162,6 +244,7 @@ public class MainActivity extends AppCompatActivity {
         return date.substring(5, 7);
     }
 
+
     /**
      * Parse year from date as String.
      * @param date String
@@ -171,49 +254,67 @@ public class MainActivity extends AppCompatActivity {
         return date.substring(0,4);
     }
 
+
     /**
      * Calcualte Month to Date by user and current month.
      */
     private void calculateAverage() {
-        avgSys = 0;
-        avgDias = 0;
-        count = 0;
+        taskDb.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                avgSys = 0;
+                avgDias = 0;
+                count = 0;
 
-        EditText edtMTD = findViewById(R.id.edtMTD);
-        String user = edtMTD.getText().toString();
+                Calendar now = Calendar.getInstance();
+                String currMonth = String.valueOf(now.get(Calendar.MONTH) + 1);
+                String currYear = String.valueOf(now.get(Calendar.YEAR));
 
-        Calendar now = Calendar.getInstance();
-        String currMonth = String.valueOf(now.get(Calendar.MONTH) + 1);
-        String currYear = String.valueOf(now.get(Calendar.YEAR));
+                for (DataSnapshot taskSnapshot : dataSnapshot.getChildren()) {
+                    TaskItem task = taskSnapshot.getValue(TaskItem.class);
 
-        // Select all systolic and diastolic dates for user in current month
-        for (TaskItem task: taskItemList) {
-            if (task.getUserId().equalsIgnoreCase(user)
-                    && currMonth.equals(parseMonth(task.getDate()))
-                    && currYear.equals(parseYear(task.getDate()))) {
+                    if (task.getUserId().equalsIgnoreCase(calculationUser)
+                            && currMonth.equals(parseMonth(task.getDate()))
+                            && currYear.equals(parseYear(task.getDate()))) {
 
-                avgSys += task.getSystolic();
-                avgDias += task.getDiastolic();
-                count++;
+                        avgSys += task.getSystolic();
+                        avgDias += task.getDiastolic();
+                        count++;
+                    }
+                }
+
+                TextView tvAvg = findViewById(R.id.txtAvg);
+
+                if(count == 0){
+                    tvAvg.setText(calculationUser + " not found");
+                } else {
+                    avgSys /= count;
+                    avgDias /= count;
+
+                    int sysInt = Math.round(avgSys);
+                    int diasInt =  Math.round(avgDias);
+
+                    String avgCondition = getConditionString(String.valueOf(sysInt),
+                            String.valueOf(diasInt));
+
+                    String averages = calculationUser + "\nAvg Pressure: " + sysInt + "/" + diasInt;
+
+                    averages += "\nAvg Condition: " + avgCondition;
+                    tvAvg.setText(averages);
+                }
+
+                tvAvg.setVisibility(View.VISIBLE);
+
             }
-        }
 
-        // Calculate average
-        avgSys /= count;
-        avgDias /= count;
 
-        int sysInt = Math.round(avgSys);
-        int diasInt =  Math.round(avgDias);
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(MainActivity.this,
+                        "Task cancelled.",Toast.LENGTH_LONG).show();
+            }
 
-        String avgCondition = getConditionString(String.valueOf(sysInt),
-                String.valueOf(diasInt));
-
-        TextView tvAvg = findViewById(R.id.txtAvg);
-        String averages = user + "\nAvg Pressure: " + sysInt + "/" + diasInt;
-
-        averages += "\nAvg Condition: " + avgCondition;
-        tvAvg.setText(averages);
-
+        });
     }
 
     /**
@@ -246,6 +347,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
+        resetList();
+
+    }
+
+    private void resetList(){
         taskDb.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -275,6 +381,8 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
+        TextView emptyList = findViewById(R.id.empty_list_item);
+        emptyList.setText(getResources().getString(R.string.emptyList_addPrompt));
     }
 
 }
