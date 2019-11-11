@@ -1,11 +1,7 @@
 === PARTNERS ===
 Daria Dimchuk
-A00980365
-daria.dimchuk@gmail.com
 
 Christy Yau
-A01041926
-christy.c.yau@gmail.com
 
 === MAJOR CHALLENGES ===
 - Firebase-related functions beyond basic CRUD, as we don't know much about snapshots or related methods
