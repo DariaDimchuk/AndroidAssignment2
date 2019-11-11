@@ -14,7 +14,7 @@
 
         <EditText
             android:id="@+id/edtMTD"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="3"
             android:hint="@string/hintMonthToDate"
@@ -41,10 +41,11 @@
 
         <EditText
             android:id="@+id/edtSearch"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="3"
-            android:hint="@string/hintSearch" />
+            android:hint="@string/hintSearch"
+            android:inputType="textPersonName|text" />
 
         <Button
             android:id="@+id/btnSearch"
@@ -74,7 +75,8 @@
         android:id="@+id/lvTasks"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="@dimen/margin_100" />
+        android:layout_marginTop="@dimen/margin_10"
+        android:layout_marginBottom="@dimen/margin_80" />
 
     <TextView
         android:id="@+id/empty_list_item"
@@ -91,7 +93,7 @@
         android:id="@+id/btnAddItem"
         android:layout_width="match_parent"
         android:layout_height="@dimen/defaultSize"
-        android:layout_marginTop="@dimen/negative_margin_100"
+        android:layout_marginTop="@dimen/negative_margin_80"
         android:textSize="@dimen/fontSize_22"
         android:layout_gravity="bottom"
         android:text="@string/btnAddItem" />
